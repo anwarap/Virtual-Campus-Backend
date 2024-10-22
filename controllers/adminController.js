@@ -1,4 +1,5 @@
 import Admin from "../models/adminModel.js";
+import Course from "../models/courseModel.js";
 import Teacher from "../models/teacherModel.js";
 import User from "../models/userModel.js";
 import { compare } from "../utils/hashedPassword.js";
@@ -109,6 +110,14 @@ export const approveCourse = async(req,res)=>{
     
     try {
         const {id} = req.params;
+        const {isApproved} = req.body;
+
+        const updatedCourse = await Course.findByIdAndUpdate(
+            id,
+            {isApproved},
+            {new:true}
+        );
+        res.status(200).json(updatedCourse);
         
     } catch (error) {
         return res.status(500).json({

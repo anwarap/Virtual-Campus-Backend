@@ -4,6 +4,7 @@ import genOtp from "../utils/generateOtp.js";
 import { createHash } from "../utils/hashedPassword.js";
 import sendVerificationMail from "../utils/nodeMailer.js";
 import { generateToken } from "../utils/jwt.js";
+import Course from "../models/courseModel.js";
 
 
 export const teacherSignup = async(req,res)=>{
@@ -191,6 +192,22 @@ export const teacherlogout = async(req,res)=>{
             maxAge: 0
         });
         res.status(200).json({ message: "Logout successful" });
+    } catch (error) {
+        return res.status(500).json({
+            data:{status:500, message:"Internal Server Error",
+                error:error.message
+            }});
+    }
+}
+
+export const getCoursesOfTeacher = async(req, res) => {
+    try {
+        console.log('ddadad')
+        const {teacherId} = req.params;
+        console.log(teacherId,'fsfsf')
+        const courses = await Course.find({instructor:teacherId}).populate('instructor');
+        console.log(courses,'cocoococ');
+        res.status(200).json({data: courses});
     } catch (error) {
         return res.status(500).json({
             data:{status:500, message:"Internal Server Error",

@@ -1,5 +1,5 @@
 import express from 'express';
-import { forgetPassword1, forgetPassword2, forgetPassword3, resendOtp, teacherLogin, teacherOtpVerification, teacherSignup, teacherlogout } from '../controllers/teacherController.js';
+import { forgetPassword1, forgetPassword2, forgetPassword3, getCoursesOfTeacher, resendOtp, teacherLogin, teacherOtpVerification, teacherSignup, teacherlogout } from '../controllers/teacherController.js';
 import { getCategory } from '../controllers/categoryController.js';
 import { createCourse } from '../controllers/courseController.js';
 import { upload } from '../config/multer.js';
@@ -15,7 +15,8 @@ teacherRoute.get("/resend-otp",resendOtp);
 teacherRoute.post("/forget-password1",forgetPassword1);
 teacherRoute.post("/forget-password2",forgetPassword2);
 teacherRoute.post("/forget-password-final",forgetPassword3);
-teacherRoute.get("/category",getCategory)
-teacherRoute.post("/add-course",upload,createCourse)
+teacherRoute.get("/category",getCategory);
+teacherRoute.post("/add-course",upload,createCourse);
+// teacherRoute.get("/teacher-courses/:teacherId",getCoursesOfTeacher)
 
 export default teacherRoute;

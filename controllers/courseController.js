@@ -1,9 +1,10 @@
 import Course from "../models/courseModel.js";
 import CloudinarySetup from "../utils/cloudinarySetup.js";
+import mongoose from "mongoose";
+
 
 export const createCourse = async(req,res)=>{
     try {
-        console.log(req.body,'request');
         const filesReq = req;
         if(!filesReq.files){
             return res.status(400).json({message:"No file uploaded. Please upload a file."});
@@ -19,12 +20,18 @@ export const createCourse = async(req,res)=>{
                     
                     const coverUploadResult = await CloudinarySetup(coverFile.path,'course_cover','image');
                     const previewUploadResult = await CloudinarySetup(previewFile.path,'course_preview','video');
-                    
+                  
+
+                    let instructorId = req.body.instructor;
+                    console.log(instructorId)
+
+
                     const courseData = {
                         ...req.body,
                         cover: coverUploadResult.secure_url,
                         preview: previewUploadResult.secure_url,
-                        lessons:JSON.parse(req.body.lessons)
+                        lessons:JSON.parse(req.body.lessons),
+                        
                         }
                         
                         console.log(courseData,'course_data');
@@ -39,10 +46,11 @@ export const createCourse = async(req,res)=>{
                                 return res.status(400).json({ message: 'No required information was provided' });
                             }
 
-        // saving to the database
+       
 
         
             const savedCourse = await Course.create(courseData);
+            console.log(courseData,'jfsfjsf')
             return res.status(200).json(savedCourse);
        
 
