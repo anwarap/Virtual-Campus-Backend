@@ -1,6 +1,9 @@
 import Course from "../models/courseModel.js";
+import Payment from "../models/paymentModel.js";
+import User from "../models/userModel.js";
 import CloudinarySetup from "../utils/cloudinarySetup.js";
-import mongoose from "mongoose";
+import Stripe from 'stripe';
+
 
 
 export const createCourse = async(req,res)=>{
@@ -65,11 +68,13 @@ export const createCourse = async(req,res)=>{
     }
 }
 
+
 export const getCourse = async(req,res)=>{
     try {
       const CourseData = await Course.find();
       res.json({data: CourseData});  
     } catch (error) {
+        console.log('eieiieieieieie')
         console.error('Error:', error);
         return res.status(500).json({
             status: 500,
@@ -77,5 +82,97 @@ export const getCourse = async(req,res)=>{
             message: "Internal Server Error",
             error: error.message,
         });
+    }
+}
+export const createPaymentIntent = async (req, res) => {
+    try {
+        const { courseId } = req.body;
+        const course = await Course.findById(courseId);
+        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+        if (!course) {
+            return res.status(404).json({ message: 'Course not found' });
+        }
+
+        const amount = course.price * 100;
+
+        let paymentIntent;
+        
+        // Check if there’s an existing PaymentIntent
+        if (req.body.paymentIntentId) {
+            paymentIntent = await stripe.paymentIntents.retrieve(req.body.paymentIntentId);
+
+            if (paymentIntent && paymentIntent.status === "succeeded") {
+                return res.status(200).json({
+                    clientSecret: paymentIntent.client_secret,
+                    status: paymentIntent.status,
+                });
+            }
+        }
+
+        // Create a new PaymentIntent if one does not exist or has not succeeded
+        paymentIntent = await stripe.paymentIntents.create({
+            amount,
+            currency: 'inr',
+            automatic_payment_methods: { enabled: true },
+        });
+
+        return res.status(200).json({
+            clientSecret: paymentIntent.client_secret,
+            paymentIntentId: paymentIntent.id,
+        });
+
+    } catch (error) {
+        console.error('Error creating payment intent:', error);
+        res.status(500).json({
+            message: 'Internal Server Error',
+            error: error.message,
+        });
+    }
+};
+
+
+export const handlePaymentSuccess =  async(req,res)=>{
+    try {
+       
+        console.log(req.body,'SLKEI');
+        const { amount, date, userId, courseId, courseName } = req.body;
+        console.log(userId,'data');
+
+        const user = await User.findById(userId);
+        if(!user){
+            return res.status(404).json({message: 'User not found'});
+
+        }
+        console.log(user.courses,'sfsfsf')
+        const courseExists = user.courses.some((course)=> course.courseId === courseId);
+        console.log(courseExists,'qewqwqwqwqw')
+
+        if(courseExists){
+            return res.status(201).json({message: 'This course has already been purchased'});
+        }else{
+            const paymentData = new Payment({
+                userId:userId,
+                courseName:courseName,
+                date:date,
+                Amount:amount/100
+            });
+            const saveData = await paymentData.save();
+            console.log(saveData,'ksfkjdsfhks');
+            await User.updateOne({ _id: userId }, {
+                $push: { courses: { courseId: courseId } }
+            });
+            return res.status(200).json({
+                success: true,
+                message: "Course purchase successful",
+                saveData,
+              });
+
+        }
+
+    } catch (error) {
+        console.log('fsfsfsff')
+        console.error('Error handling payment success:', error);
+        res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 }

@@ -8,6 +8,9 @@ import { userSignup ,
     userLogin,
     logout,
 } from "../controllers/userController.js";
+import { createPaymentIntent,
+    handlePaymentSuccess,
+ } from "../controllers/courseController.js";
 const userRoute = express.Router();
 
 
@@ -20,6 +23,8 @@ userRoute.get("/resend-otp",resendOtp);
 userRoute.post("/forget-password1",forgotPassword1);
 userRoute.post("/forget-password2",forgetPassword2);
 userRoute.post("/forget-password-final",forgetPassword3);
+userRoute.post('/create-payment-intent', createPaymentIntent);
+userRoute.post('/success',handlePaymentSuccess)
 
 
 

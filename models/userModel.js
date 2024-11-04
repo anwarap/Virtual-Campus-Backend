@@ -18,7 +18,12 @@ const UserSchema = new mongoose.Schema({
     },
     mobile:{
         type:String,
+    },
+    courses: [ 
+    {
+      courseId: String,
     }
+  ],
 },{
     timestamps:true
 });
