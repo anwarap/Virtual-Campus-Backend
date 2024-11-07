@@ -1,4 +1,5 @@
 import Admin from "../models/adminModel.js";
+import Category from "../models/categoryModel.js";
 import Course from "../models/courseModel.js";
 import Teacher from "../models/teacherModel.js";
 import User from "../models/userModel.js";
@@ -119,6 +120,27 @@ export const approveCourse = async(req,res)=>{
         );
         res.status(200).json(updatedCourse);
         
+    } catch (error) {
+        return res.status(500).json({
+            data:{status:500, message:"Internal Server Error",
+                error:error.message
+            }});
+    }
+}
+
+export const blockCategory = async (req,res)=>{
+    try {
+        const {id} = req.params;
+        const category = await Category.findById(id);
+        if(!category){
+            return res.status(404).json({message:"Category not found"});
+        }else{
+            const updated = await Category.findByIdAndUpdate(id,{
+                $set:{block :!category.block }
+            },{new:true});
+            return res.status(200).json({data:updated});
+        }
+
     } catch (error) {
         return res.status(500).json({
             data:{status:500, message:"Internal Server Error",

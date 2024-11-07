@@ -12,7 +12,7 @@ export const createCategory = async (req,res)=>{
             name: name,
         });
         const savedCategory = await newCategory.save();
-        res.status(200).json({Category: savedCategory})
+        return res.status(200).json({Category: savedCategory})
     } catch (error) {
         return res.status(500).json({message:"Internal error"})
         
@@ -23,7 +23,7 @@ export const createCategory = async (req,res)=>{
 export const getCategory = async (req, res) => {
     try {
         const data = await Category.find();
-        res.status(200).json({data});
+        return res.status(200).json({data});
 
     } catch (error) {
         return res.status(500).json({message:"Interval error"})

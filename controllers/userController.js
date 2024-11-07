@@ -31,6 +31,19 @@ export  const userSignup = async (req,res)=>{
         })
 
         req.app.locals.user = user;
+
+       
+
+if (user && req.body.is_google === true) {
+
+    const hashedPassword = await createHash(req.body.password);
+    user.password = hashedPassword;
+    const userData = await user.save();
+ 
+
+    return res.status(200).json({ userSave: userData });
+}
+
         return res.status(200).json({response: verify});
     } catch (error) {
         return res.status(500).json({message:"Interval error"})
@@ -86,8 +99,10 @@ export const resendOtp = async (req, res) => {
 
 export const userLogin = async(req,res)=>{
     try {
+        console.log(req.body,'bodyy')
         const {email,password}= req.body;
         const user = await User.findOne({email});
+        console.log(user,'userrr')
 
         if(!user){
             return res.status(401).json({message: "User not found"});
@@ -97,6 +112,7 @@ export const userLogin = async(req,res)=>{
         }
 
         const passwordMatch = await compare(password, user.password);
+        console.log(passwordMatch,'pddd')
         if(!passwordMatch){
             return res.status(401).json({message: "Invalid User Credentials"});
         }
@@ -128,14 +144,21 @@ export const userLogin = async(req,res)=>{
 export const forgotPassword1 = async (req, res) => {
     try {
         const email = req.body.email;
+        console.log(email,'email')
         const user = await User.findOne({email});
+        if(!user){
+            return res.status(404).json({message: 'user not found'});
+        }
         const otp = await genOtp(6);
         const verify = await sendVerificationMail(email,otp);
+        console.log(verify,'verify')
         console.log( otp,'sfswf');
 
         req.app.locals.otp = verify.otp;
-        return res.status(user.status).json(user.data);
+        console.log(user.status,user.data,'fsfd')
+        return res.status(200).json(verify);
     } catch (error) {
+        console.log('adadadadadd')
         return res.status(500).json({
             data:{status:500, message:"Internal Server Error",
                 error:error.message
@@ -149,7 +172,8 @@ export const forgetPassword2 = async (req, res) => {
         console.log(req.app.locals.otp,'otplocal')
         console.log(req.body.otp,'body')
         if(req.body.otp != req.app.locals.otp){
-           return  res.status(401).json({message:"otp does not matchh"})
+            console.log('hshsh')
+           return  res.status(401).json({message:"otp does not match"})
         }else{
            req.app.locals.otp = null;
            return  res.status(200).json({message:"Otp verification successful"})
@@ -165,21 +189,14 @@ export const forgetPassword2 = async (req, res) => {
 export const forgetPassword3 = async (req, res) => {
     try {
         const {email, password} = req.body;
-        const user  = User.findOne({email});
+        const user  =await  User.findOne({email});
         if(user){
             user.password = await createHash(password);
             const userData = await user.save();
-            return {
-                status:200,
-                data:"Password updated"
-            }
+            return res.status(200).json(userData);
 
         }else{
-            return {
-                status:401,
-                data:{message:"password not matching"}
-                
-            }
+            return res.status(401).json({message:"password not match"})
         }        
     } catch (error) {
         return res.status(500).json({

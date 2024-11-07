@@ -97,8 +97,7 @@ export const createPaymentIntent = async (req, res) => {
         const amount = course.price * 100;
 
         let paymentIntent;
-        
-        // Check if there’s an existing PaymentIntent
+      
         if (req.body.paymentIntentId) {
             paymentIntent = await stripe.paymentIntents.retrieve(req.body.paymentIntentId);
 
@@ -109,8 +108,6 @@ export const createPaymentIntent = async (req, res) => {
                 });
             }
         }
-
-        // Create a new PaymentIntent if one does not exist or has not succeeded
         paymentIntent = await stripe.paymentIntents.create({
             amount,
             currency: 'inr',

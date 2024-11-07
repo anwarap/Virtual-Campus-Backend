@@ -31,6 +31,17 @@ export const teacherSignup = async(req,res)=>{
             mobile:mobile
         });
         req.app.locals.teacher = teacher;
+
+        if (teacher && req.body.is_google === true) {
+
+            const hashedPassword = await createHash(req.body.password);
+            teacher.password = hashedPassword;
+            const teacherData = await teacher.save();
+        
+        
+            return res.status(200).json({ teacherSave: teacherData });
+        }
+
         return res.status(200).json({response: verify});
 
     } catch (error) {
@@ -121,11 +132,14 @@ export const forgetPassword1 = async (req, res) => {
     try {
         const email = req.body.email;
         const teacher = await Teacher.findOne({email});
+        if(!teacher){
+            return res.status(404).json({message: 'Teacher not found'});
+        }
         const otp = await genOtp(6);
         const verify = await sendVerificationMail(email,otp);
         console.log(otp,'verify');
         req.app.locals.otp = verify.otp;
-        return res.status(teacher.status).json(teacher.data);
+        return res.status(200).json(verify);
     } catch (error) {
         return res.status(500).json({
             data:{status:500, message:"Internal Server Error",
@@ -140,7 +154,7 @@ export const forgetPassword2 = async (req, res) => {
         console.log(req.app.locals.otp,'otplocal')
         console.log(req.body.otp,'body')
         if(req.body.otp != req.app.locals.otp){
-           return  res.status(401).json({message:"otp does not matchh"})
+           return  res.status(401).json({message:"otp does not match"})
         }else{
            req.app.locals.otp = null;
            return  res.status(200).json({message:"Otp verification successful"})
@@ -159,21 +173,14 @@ export const forgetPassword2 = async (req, res) => {
 export const forgetPassword3 = async (req, res) => {
     try {
         const {email, password} = req.body;
-        const teacher  = Teacher.findOne({email});
-        if(user){
+        const teacher  = await Teacher.findOne({email});
+        if(teacher){
             teacher.password = await createHash(password);
             const teacherData = await teacher.save();
-            return {
-                status:200,
-                data:"Password updated"
-            }
+            return res.status(200).json(teacherData);
 
         }else{
-            return {
-                status:401,
-                data:{message:"password not matching"}
-                
-            }
+            return res.status(401).json({message:"password not match"})
         }        
     } catch (error) {
         return res.status(500).json({
